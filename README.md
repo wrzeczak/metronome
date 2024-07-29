@@ -2,15 +2,13 @@
 
 A basic metronome utility.
 
-https://github.com/user-attachments/assets/ab67c030-494e-49c4-b124-a314aef462c6
-
 ---
 
 ### USAGE: 
 
-Compilation should be as simple as `make build`. The only dependency is raylib, including [`raygui.h`](https://github.com/raysan5/raygui/blob/master/src/raygui.h).
+Compilation should be as simple as `make build`. The only dependency is raylib. Use the included version of `raygui.h` (I will port the small changes I made to a style soon) for error correction purposes.
 
-Click and drag on the blue slider to change the tempo. Press `ESC` to exit.
+Click and drag on the blue slider to change the tempo, or use the text input box, or click one of the pre-written tempi. Press `ESC` to exit.
 
 Any Raylib-supported audio file in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. Anything that's not audio will be "loaded," the app will simply play nothing there because Raylib's sound loader will only warn about such things. Just be sure to keep that folder cogent.
 
@@ -30,7 +28,7 @@ Click sound source: [errorjones via Reddit](https://www.reddit.com/r/audioengine
 
 ### Intended Features
 
-- Text input for bpm (v.1.0)
+- ~~Text input for bpm (v.1.0)~~
 - Easier, more user-friendly system for selecting click sounds (v.1.1)
 - Subdivisions with swing percentage (v.2.0)
 - Time signatures (v.2.1)

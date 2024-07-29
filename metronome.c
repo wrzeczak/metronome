@@ -35,7 +35,7 @@ wrzBeatSounds wrzLoadBeatSounds(const char * dir) {
     // Raylib's supported filetypes -- wav, mp3, ogg, flac, qoa, xm, mod
     FilePathList wavs = LoadDirectoryFiles(dir);
 
-    printf("INFO: BEATS: `%s` contains %d files.\n", dir, wavs.count);
+    printf("INFO: BEATS: `%s` contains %d file(s).\n", dir, wavs.count);
 
     if(wavs.count > 0) {
         output.sounds = malloc(wavs.count * sizeof(Sound));
@@ -91,10 +91,9 @@ void wrzSpeedSelectionSlider(float * bpm) {
 
 // NOTE: modifies `bpm`
 void wrzSpeedInputBox(char ** input_buffer, int input_buffer_size, float * bpm) {
-    bool secret = false;
-    snprintf(*input_buffer, input_buffer_size, "%03d", (int) (*bpm));
+    snprintf(*input_buffer, input_buffer_size, "%03d", (int) (*bpm)); // this makes the text box kind of annoying but it seems to be necessary
     GuiTextBox((Rectangle) { 300, 800, 50, 40 }, *input_buffer, 120, true);
-    *bpm = (float) atoi(*input_buffer);
+    *bpm = (float) atoi(*input_buffer); // i've heard atoi is no good, maybe i'll change this
 }
 
 void wrzSpeedSelectionButtons(float * bpm) {
@@ -145,7 +144,7 @@ void wrzDrawBPM(int bpm) {
 
 int main(void) {
     //------------------------------------------------------------------------------
-    InitWindow(WIDTH, HEIGHT, "WRZ: Metronome");
+    InitWindow(WIDTH, HEIGHT, "WRZ: Metronome v." VERSIONNO);
 
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     //------------------------------------------------------------------------------
