@@ -6,7 +6,7 @@ A basic metronome utility.
 
 ### USAGE: 
 
-Compilation should be as simple as `make build`. The only dependency is raylib, including `raygui.h`.
+Compilation should be as simple as `make build`. The only dependency is raylib, including [`raygui.h`](https://github.com/raysan5/raygui/blob/master/src/raygui.h).
 
 Click and drag on the blue slider to change the tempo. Press `ESC` to exit.
 
