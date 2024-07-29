@@ -61,8 +61,7 @@ int main(void) {
     //------------------------------------------------------------------------------
 
     // GUI sliders work in floats -- musical bpms are almost always integers
-    float bpm_raw = 60.0f;
-    int bpm;
+    float bpm = 60.0f;
 
     // change in time since the last frame
     double deltaTime = 0.0f;
@@ -82,8 +81,7 @@ int main(void) {
 
             wrzDrawStaticElements(); // draw the title and background triangle
 
-            wrzSpeedSelectionSlider(&bpm_raw); // get the bpm (float) from the slider
-            bpm = (int) floor((double) bpm_raw); // turn it into an int
+            wrzSpeedSelectionSlider(&bpm); // get the bpm (float) from the slider
             float spb = 60 * (1 / (float) bpm); // convert from beats-per-minute to seconds-per-beat
 
             deltaTime += GetFrameTime(); // add to the deltaTime
@@ -95,7 +93,7 @@ int main(void) {
 
             wrzBeatAnimation(deltaTime, spb); // play the beating animation
 
-            wrzDrawBPM(bpm); // draw the bpm text over the beating animation
+            wrzDrawBPM((int) floor(bpm)); // draw the bpm text over the beating animation
 
         EndDrawing();
     }
