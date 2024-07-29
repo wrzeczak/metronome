@@ -27,3 +27,10 @@ And in between the quotes put the file directory. It can be relative or explicit
 ---
 
 Click sound source: [errorjones via Reddit](https://www.reddit.com/r/audioengineering/comments/kg8gth/free_click_track_sound_archive/?rdt=32981) -- [direct archive link](https://stash.reaper.fm/40824/Metronomes.zip)
+
+### Intended Features
+
+- Text input for bpm (v.1.0)
+- Easier, more user-friendly system for selecting click sounds (v.1.1)
+- Subdivisions with swing percentage (v.2.0)
+- Time signatures (v.2.1)
