@@ -2,6 +2,8 @@
 
 A basic metronome utility.
 
+https://github.com/user-attachments/assets/ab67c030-494e-49c4-b124-a314aef462c6
+
 ---
 
 ### USAGE: 
