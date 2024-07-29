@@ -20,7 +20,7 @@ And in between the quotes put the file directory. It can be relative or explicit
 
 ### Error compiling?
 
-`undefined reference to TextToFloat()`: this will happen if you use Raylib 5.0 and the latest `raygui.h`, their APIs are not totally in line. Move `TextToFloat()` above `GuiValueBoxFloat()` in the code. Ctrl+F
+`undefined reference to TextToFloat()`: this will happen if you use Raylib 5.0 and the latest `raygui.h`, their APIs are not totally in line. Move `TextToFloat()` above `GuiValueBoxFloat()` in the code. If you use the provided `raygui.h` you should not encounter this issue.
 
 ---
 
