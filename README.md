@@ -18,6 +18,10 @@ To use a different beats folder, edit the line towards the top of `metronome.c` 
 ```
 And in between the quotes put the file directory. It can be relative or explicit. If no beats are provided, the app will load `./resources/beats/default-beat.wav`. Be aware that file loading can take a few seconds, so if you have many clicks, be patient.
 
+### Error compiling?
+
+`undefined reference to TextToFloat()`: this will happen if you use Raylib 5.0 and the latest `raygui.h`, their APIs are not totally in line. Move `TextToFloat()` above `GuiValueBoxFloat()` in the code. Ctrl+F
+
 ---
 
 Click sound source: [errorjones via Reddit](https://www.reddit.com/r/audioengineering/comments/kg8gth/free_click_track_sound_archive/?rdt=32981) -- [direct archive link](https://stash.reaper.fm/40824/Metronomes.zip)
