@@ -10,7 +10,7 @@
 #define WIDTH 1200
 #define HEIGHT 900
 
-#define VERSIONNO "0.9"
+#define VERSIONNO "1.0"
 #define BEATSDIR "./resources/beats/"
 
 //------------------------------------------------------------------------------
