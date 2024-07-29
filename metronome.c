@@ -76,6 +76,7 @@ void wrzDrawStaticElements() {
     DrawText(title, 10, 10, 20, BLACK);
     DrawText(to_exit, (WIDTH - 10 - to_exit_width), 10, 20, BLACK);
     //------------------------------------------------------------------------------
+    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 460, 30.0f, RAYWHITE);
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 440, 30.0f, Fade(LIGHTGRAY, .25f));
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 420, 30.0f, Fade(LIGHTGRAY, .50f));
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 400, 30.0f, LIGHTGRAY);
@@ -94,6 +95,33 @@ void wrzSpeedInputBox(char ** input_buffer, int input_buffer_size, float * bpm) 
     snprintf(*input_buffer, input_buffer_size, "%03d", (int) (*bpm));
     GuiTextBox((Rectangle) { 300, 800, 50, 40 }, *input_buffer, 120, true);
     *bpm = (float) atoi(*input_buffer);
+}
+
+void wrzSpeedSelectionButtons(float * bpm) {
+    // TODO: there's probably a better way to do this, probably with a list of tempi and a loop...
+    // NOTE: dx = -35, dy = 60, strlen = 13
+    //------------------------------------------------------------------------------
+    // left side
+    if( GuiButton((Rectangle) { 480, 180, 100, 50 }, "108      ") ) *bpm = 108.0f;
+    if( GuiButton((Rectangle) { 445, 240, 100, 50 }, "120      ") ) *bpm = 120.0f;
+    if( GuiButton((Rectangle) { 410, 300, 100, 50 }, "128      ") ) *bpm = 128.0f;
+    if( GuiButton((Rectangle) { 375, 360, 100, 50 }, "132      ") ) *bpm = 132.0f;
+    if( GuiButton((Rectangle) { 340, 420, 100, 50 }, "136      ") ) *bpm = 136.0f;
+    if( GuiButton((Rectangle) { 305, 480, 100, 50 }, "140      ") ) *bpm = 140.0f;
+    if( GuiButton((Rectangle) { 270, 540, 100, 50 }, "144      ") ) *bpm = 144.0f;
+    if( GuiButton((Rectangle) { 235, 600, 100, 50 }, "148      ") ) *bpm = 148.0f;
+    if( GuiButton((Rectangle) { 200, 660, 100, 50 }, "152      ") ) *bpm = 152.0f;
+    //------------------------------------------------------------------------------
+    // now, dx = 35, dy = 60, strlen = 13
+    if( GuiButton((Rectangle) { 620, 180, 100, 50 }, "      100") ) *bpm = 100.0f;
+    if( GuiButton((Rectangle) { 655, 240, 100, 50 }, "       96") ) *bpm =  96.0f;
+    if( GuiButton((Rectangle) { 690, 300, 100, 50 }, "       92") ) *bpm =  92.0f;
+    if( GuiButton((Rectangle) { 725, 360, 100, 50 }, "       88") ) *bpm =  88.0f;
+    if( GuiButton((Rectangle) { 760, 420, 100, 50 }, "       80") ) *bpm =  80.0f;
+    if( GuiButton((Rectangle) { 795, 480, 100, 50 }, "       72") ) *bpm =  72.0f;
+    if( GuiButton((Rectangle) { 830, 540, 100, 50 }, "       66") ) *bpm =  66.0f;
+    if( GuiButton((Rectangle) { 865, 600, 100, 50 }, "       60") ) *bpm =  60.0f;
+    if( GuiButton((Rectangle) { 895, 660, 100, 50 }, "       52") ) *bpm =  52.0f;
 }
 
 //------------------------------------------------------------------------------
@@ -167,9 +195,18 @@ int main(void) {
 
             ClearBackground(RAYWHITE);
 
+            //------------------------------------------------------------------------------
+
+            wrzSpeedSelectionButtons(&bpm);
+
             wrzDrawStaticElements(); // draw the title and background triangle
 
             wrzSpeedSelectionSlider(&bpm); // get the bpm (float) from the slider
+
+            wrzSpeedInputBox(&input_buffer, input_buffer_size, &bpm);
+
+            //------------------------------------------------------------------------------
+            
             float spb = 60 * (1 / (float) bpm); // convert from beats-per-minute to seconds-per-beat
 
             deltaTime += GetFrameTime(); // add to the deltaTime
@@ -179,11 +216,11 @@ int main(void) {
                 deltaTime = 0.0f; // reset the timer
             }
 
+            //------------------------------------------------------------------------------
+
             wrzBeatAnimation(deltaTime, spb); // play the beating animation
 
             wrzDrawBPM((int) floor(bpm)); // draw the bpm text over the beating animation
-
-            wrzSpeedInputBox(&input_buffer, input_buffer_size, &bpm);
 
         EndDrawing();
     }
