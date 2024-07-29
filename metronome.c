@@ -18,99 +18,12 @@
 typedef struct {
     Sound * sounds;
     int err, count;
-} BeatSounds;
+} wrzBeatSounds;
 
 //------------------------------------------------------------------------------
 
-void wrzBeatAnimation(float deltaTime, float spb);
-void wrzDestroyBeatSounds(BeatSounds * b);
-void wrzDrawBPM(int bpm);
-void wrzDrawStaticElements();
-void wrzSpeedSelectionSlider(float * bpm);
-
-BeatSounds wrzLoadBeatSounds(const char * dir);
-
-//------------------------------------------------------------------------------
-
-int main(void) {
-    //------------------------------------------------------------------------------
-    InitWindow(WIDTH, HEIGHT, "WRZ: Metronome");
-
-    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
-    //------------------------------------------------------------------------------
-
-    // Load icon image
-    Image icon_img = LoadImage("./resources/icon.png");
-
-    // Set icon 
-    SetWindowIcon(icon_img);
-
-    // Unload icon image from memory
-    UnloadImage(icon_img);
-    //------------------------------------------------------------------------------
-
-    InitAudioDevice();
-    BeatSounds sounds = wrzLoadBeatSounds(BEATSDIR);
-
-    Sound beat_sound = { 0 };
-
-    if(sounds.err == 0) {
-        beat_sound = sounds.sounds[0];
-    } // error handling should be handled by wrzLoadBeatSounds() itself, so no else is needed
-
-    //------------------------------------------------------------------------------
-
-    // GUI sliders work in floats -- musical bpms are almost always integers
-    float bpm = 60.0f;
-
-    // change in time since the last frame
-    double deltaTime = 0.0f;
-
-    // which beat the app is using ie. index in sounds.sounds[]
-    int beat_idx = 0;
-
-    while(!WindowShouldClose()) {
-        BeginDrawing();
-            // rotate through beat sounds when space is pressed
-            if(IsKeyPressed(KEY_SPACE)) {
-                beat_idx = (beat_idx + 1) % sounds.count;
-                beat_sound = sounds.sounds[beat_idx];
-            }
-
-            ClearBackground(RAYWHITE);
-
-            wrzDrawStaticElements(); // draw the title and background triangle
-
-            wrzSpeedSelectionSlider(&bpm); // get the bpm (float) from the slider
-            float spb = 60 * (1 / (float) bpm); // convert from beats-per-minute to seconds-per-beat
-
-            deltaTime += GetFrameTime(); // add to the deltaTime
-
-            if(deltaTime >= spb) { // if it has been long enough for the next beat
-                PlaySound(beat_sound);
-                deltaTime = 0.0f; // reset the timer
-            }
-
-            wrzBeatAnimation(deltaTime, spb); // play the beating animation
-
-            wrzDrawBPM((int) floor(bpm)); // draw the bpm text over the beating animation
-
-        EndDrawing();
-    }
-
-    wrzDestroyBeatSounds(&sounds);
-
-    CloseWindow();
-
-    CloseAudioDevice();
-
-    return 0;
-}
-
-//------------------------------------------------------------------------------
-
-BeatSounds wrzLoadBeatSounds(const char * dir) {
-    BeatSounds output;
+wrzBeatSounds wrzLoadBeatSounds(const char * dir) {
+    wrzBeatSounds output;
 
     output.err = 0; // no error
 
@@ -143,7 +56,7 @@ BeatSounds wrzLoadBeatSounds(const char * dir) {
     return output;
 }
 
-void wrzDestroyBeatSounds(BeatSounds * b) {
+void wrzDestroyBeatSounds(wrzBeatSounds * b) {
     free(b->sounds);
 }
 
@@ -175,11 +88,12 @@ void wrzSpeedSelectionSlider(float * bpm) {
     GuiSliderBar((Rectangle) { 400, 800, 400, 40 }, NULL, NULL, bpm, 1, 300);
 }
 
-void wrzDrawBPM(int bpm) {
-    const char * text = TextFormat("%d", bpm);
-    int width = MeasureText(text, 140);
-
-    DrawText(text, (WIDTH - width) / 2, 450, 140, RAYWHITE);
+// NOTE: modifies `bpm`
+void wrzSpeedInputBox(char ** input_buffer, int input_buffer_size, float * bpm) {
+    bool secret = false;
+    snprintf(*input_buffer, input_buffer_size, "%03d", (int) (*bpm));
+    GuiTextBox((Rectangle) { 300, 800, 50, 40 }, *input_buffer, 120, true);
+    *bpm = (float) atoi(*input_buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -192,6 +106,96 @@ void wrzBeatAnimation(float deltaTime, float spb) {
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 400 * scale, 30.0f, Fade(GRAY, 0.2f * scale));
 }
 
+void wrzDrawBPM(int bpm) {
+    const char * text = TextFormat("%d", bpm);
+    int width = MeasureText(text, 140);
+
+    DrawText(text, (WIDTH - width) / 2, 450, 140, RAYWHITE);
+}
+
 //------------------------------------------------------------------------------
+
+int main(void) {
+    //------------------------------------------------------------------------------
+    InitWindow(WIDTH, HEIGHT, "WRZ: Metronome");
+
+    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
+    //------------------------------------------------------------------------------
+
+    // Load icon image
+    Image icon_img = LoadImage("./resources/icon.png");
+
+    // Set icon 
+    SetWindowIcon(icon_img);
+
+    // Unload icon image from memory
+    UnloadImage(icon_img);
+    //------------------------------------------------------------------------------
+
+    InitAudioDevice();
+    wrzBeatSounds sounds = wrzLoadBeatSounds(BEATSDIR);
+
+    Sound beat_sound = { 0 };
+
+    if(sounds.err == 0) {
+        beat_sound = sounds.sounds[0];
+    } // error handling should be handled by wrzLoadwrzBeatSounds() itself, so no else is needed
+
+    //------------------------------------------------------------------------------
+
+    // GUI sliders work in floats -- musical bpms are almost always integers
+    float bpm = 60.0f;
+
+    // change in time since the last frame
+    double deltaTime = 0.0f;
+
+    // which beat the app is using ie. index in sounds.sounds[]
+    int beat_idx = 0;
+
+    int input_buffer_size = 4; // max input is '3' '0' '0' '\0'
+    char * input_buffer = malloc(input_buffer_size);
+    memset(input_buffer, ' ', input_buffer_size);
+    input_buffer[input_buffer_size - 1] = '\0';
+
+    while(!WindowShouldClose()) {
+        BeginDrawing();
+            // rotate through beat sounds when space is pressed
+            if(IsKeyPressed(KEY_SPACE)) {
+                beat_idx = (beat_idx + 1) % sounds.count;
+                beat_sound = sounds.sounds[beat_idx];
+            }
+
+            ClearBackground(RAYWHITE);
+
+            wrzDrawStaticElements(); // draw the title and background triangle
+
+            wrzSpeedSelectionSlider(&bpm); // get the bpm (float) from the slider
+            float spb = 60 * (1 / (float) bpm); // convert from beats-per-minute to seconds-per-beat
+
+            deltaTime += GetFrameTime(); // add to the deltaTime
+
+            if(deltaTime >= spb) { // if it has been long enough for the next beat
+                PlaySound(beat_sound);
+                deltaTime = 0.0f; // reset the timer
+            }
+
+            wrzBeatAnimation(deltaTime, spb); // play the beating animation
+
+            wrzDrawBPM((int) floor(bpm)); // draw the bpm text over the beating animation
+
+            wrzSpeedInputBox(&input_buffer, input_buffer_size, &bpm);
+
+        EndDrawing();
+    }
+
+    wrzDestroyBeatSounds(&sounds);
+    free(input_buffer);
+
+    CloseWindow();
+
+    CloseAudioDevice();
+
+    return 0;
+}
 
 // FIN. :)
