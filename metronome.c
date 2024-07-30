@@ -12,9 +12,8 @@
 #define HEIGHT 900
 
 #define VERSIONNO "1.9"
-#define BEATSDIR "./resources/beats/"
 
-#define CUSTOMSTYLE "./resources/styles/style_cyber.rgs"
+#define CONFIGPATH "./metronome.config"
 
 //------------------------------------------------------------------------------
 
@@ -22,6 +21,12 @@ typedef struct {
     Sound * sounds;
     int count;
 } wrzBeatSounds; // return type for wrzLoadBeatSounds()
+
+typedef struct {
+    int primary_beat_no, secondary_beat_no; // suffixed "no" because this data is 1-indexed
+    char * beats_directory;
+    char * style_filepath;
+} wrzProgramConfig;
 
 //------------------------------------------------------------------------------
 
@@ -107,6 +112,100 @@ void wrzDestroyBeatSounds(wrzBeatSounds * b) {
 
 //------------------------------------------------------------------------------
 
+wrzProgramConfig wrzLoadProgramConfig(const char * filepath) {
+    //------------------------------------------------------------------------------
+
+    wrzProgramConfig output = { 0 };
+
+    if(!FileExists(filepath)) { // if the file does not exist, crash
+        // TODO: make this create and load a default configuration file
+        printf("WARNING: CONFIG: Config file \"%s\" not found! Creating \"./metronome.config\" with default settings.\n", filepath);
+
+        FILE * default_config = fopen("./metronome.config", "w");
+        fprintf_s(default_config, "PRIMARY = 1\nSECONDARY = 2\n"); // adding one to from 0-idx to 1-idx
+        fprintf_s(default_config, "BEATSDIR = \"./resources/beats/\"\nSTYLEPATH = \"\""); // intentionally empty stylepath by default
+        fclose(default_config);
+    }
+
+    //------------------------------------------------------------------------------
+
+    FILE * config_file = fopen((FileExists(filepath)) ? filepath : "./metronome.config", "r");
+
+    int imported_beat_idx = -1;
+    int imported_sub_beat_idx = -1;
+
+    char imported_beats_dir_buffer[255];
+    char imported_style_path_buffer[255];
+
+    memset(imported_beats_dir_buffer, '\0', 255);
+    memset(imported_style_path_buffer, '\0', 255);
+
+    char config_file_line[255];
+    memset(config_file_line, '\0', 255);
+
+    fgets(config_file_line, 255, config_file);
+    sscanf_s(config_file_line, "PRIMARY = %d", &imported_beat_idx);
+    printf("INFO: CONFIG: Loaded config option, primary beat sound set to #%d.\n", imported_beat_idx);
+
+    memset(config_file_line, '\0', 255);
+
+    fgets(config_file_line, 255, config_file);
+    sscanf_s(config_file_line, "SECONDARY = %d", &imported_sub_beat_idx);
+    printf("INFO: CONFIG: Loaded config option, secondary beat sound set to #%d.\n", imported_sub_beat_idx);
+
+    memset(config_file_line, '\0', 255);
+
+    fgets(config_file_line, 255, config_file);
+    sscanf_s(config_file_line, "BEATSDIR = \"%s\"", &imported_beats_dir_buffer);
+    imported_beats_dir_buffer[strlen(imported_beats_dir_buffer) - 1] = '\0'; // chop off trailing \" character
+
+    if(!DirectoryExists(imported_beats_dir_buffer)) {
+        printf("WARNING: CONFIG: Provided beats directory \"%s\" does not exist! Attemping to load default directory...\n", imported_beats_dir_buffer);
+        if(!DirectoryExists("./resources/beats/")) {
+            printf("ERROR: CONFIG: No beats directory found!\n");
+            exit(4);
+        }
+    }
+    
+    printf("INFO: CONFIG: Loaded config option, beats directory is \"%s\".\n", imported_beats_dir_buffer);
+
+    memset(config_file_line, '\0', 255);
+
+    fgets(config_file_line, 255, config_file);
+    sscanf_s(config_file_line, "STYLEPATH = \"%s\"", &imported_style_path_buffer);
+    imported_style_path_buffer[strlen(imported_style_path_buffer) - 1] = '\0';
+
+    if(FileExists(imported_style_path_buffer)) printf("INFO: CONFIG: Loaded config option, style path is \"%s\".\n", imported_style_path_buffer);
+    // if it does not exist, we will set it to NULL below
+
+    fclose(config_file);
+
+    //------------------------------------------------------------------------------
+
+    output.primary_beat_no = imported_beat_idx; // 1-idx
+    output.secondary_beat_no = imported_sub_beat_idx; // 1-idx
+
+    output.beats_directory = malloc(strlen(imported_beats_dir_buffer));
+    strcpy(output.beats_directory, imported_beats_dir_buffer);
+
+    if(FileExists(imported_style_path_buffer)) {
+        output.style_filepath = malloc(strlen(imported_style_path_buffer));
+        strcpy(output.style_filepath, imported_style_path_buffer);
+    } else {
+        output.style_filepath = NULL;
+        printf("WARNING: CONFIG: Style \"%s\" not found! Loading raygui default style.\n", imported_style_path_buffer);
+    }
+
+    return output;
+}
+
+void wrzDestroyProgramConfig(wrzProgramConfig * c) {
+    free(c->beats_directory);
+    free(c->style_filepath);
+}
+
+//------------------------------------------------------------------------------
+
 int wrzSelectBeatSounds(int * primary, int * secondary, int count) {
     if( GuiButton((Rectangle) { 450, 850, 150, 40 }, TextFormat("%1d", (*primary + 1))) ) {
         // render the second button, because we won't get that far in the code
@@ -160,6 +259,7 @@ void wrzSpeedInputBox(char ** input_buffer, int input_buffer_size, float * bpm) 
     *bpm = (float) atoi(*input_buffer); // i've heard atoi is no good, maybe i'll change this
 }
 
+// TODO: put this in the configuration file
 // used in wrzSpeedSelectionButtons(), just some common tempi to be rendered in button form for ease of use
 // these are customizable, just edit this list. max bpm is 300, min is 1
 int left_side_numbers[9] =  { 108, 120, 128, 132, 136, 140, 144, 148, 152 };
@@ -224,23 +324,6 @@ int main(void) {
 
     //------------------------------------------------------------------------------
 
-    #ifdef CUSTOMSTYLE
-    GuiLoadStyle(CUSTOMSTYLE);
-    #endif
-
-    Color clear_color = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
-    Color fill_color = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL));
-    Color text_color = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
-
-    Font font = GuiGetFont();
-    float text_spacing = GuiGetStyle(DEFAULT, TEXT_SPACING);
-
-    #ifndef CUSTOMSTYLE
-    text_spacing *= 2;
-    #endif
-
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 20); // raygui, set the style's text size to 20
-
     //------------------------------------------------------------------------------
 
     // Load icon image
@@ -254,40 +337,39 @@ int main(void) {
 
     //------------------------------------------------------------------------------
 
-    int imported_beat_idx = -1;
-    int imported_sub_beat_idx = -1;
+    wrzProgramConfig w = wrzLoadProgramConfig(CONFIGPATH);
 
-    if(FileExists("./metronome.config")) {
-        FILE * config_file = fopen("./metronome.config", "r");
-        
-        char config_file_line[255];
-        memset(config_file_line, '\0', 255);
+    //------------------------------------------------------------------------------
 
-        fgets(config_file_line, 255, config_file);
-        sscanf_s(config_file_line, "PRIMARY = %d", &imported_beat_idx);
-        printf("INFO: CONFIG: Loaded config option, primary beat sound set to #%d.\n", imported_beat_idx);
+    // TODO: make this depending on whether or not config.style_path == NULL
+    if(w.style_filepath != NULL) GuiLoadStyle(w.style_filepath);
+    // else, use the default one
 
-        memset(config_file_line, '\0', 255);
+    Color clear_color = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
+    Color fill_color = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL));
+    Color text_color = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
 
-        fgets(config_file_line, 255, config_file);
-        sscanf_s(config_file_line, "SECONDARY = %d", &imported_sub_beat_idx);
-        printf("INFO: CONFIG: Loaded config option, secondary beat sound set to #%d.\n", imported_sub_beat_idx);
+    Font font = GuiGetFont();
+    float text_spacing = GuiGetStyle(DEFAULT, TEXT_SPACING);
 
-        fclose(config_file);
-    } else printf("INFO: CONFIG: No metronome.config found, loading defaults.\n");
+    if(w.style_filepath == NULL) text_spacing *= 2; // this is just to fix the default style's spacing being too small for my eyes
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 20); // raygui, set the style's text size to 20
+
+    //------------------------------------------------------------------------------
 
     InitAudioDevice();
-    wrzBeatSounds sounds = wrzLoadBeatSounds(BEATSDIR); // load beat sounds from filesystem
+    wrzBeatSounds sounds = wrzLoadBeatSounds(w.beats_directory); // load beat sounds from filesystem
     // NOTE: this function should capture errors with missing files by itself, but i have not thoroughly tested this
 
     Sound beat_sound = { 0 };
     Sound sub_beat_sound = { 0 };
 
     // which beat and sub-beat are to be played, indexing into sounds.sounds[]
-    int beat_idx = (imported_beat_idx != -1 && (imported_beat_idx - 1) < sounds.count) ? imported_beat_idx - 1 : 0; // removing 1 because the UI is 1-indexed 
-    int sub_beat_idx = (imported_sub_beat_idx != -1 && (imported_sub_beat_idx - 1) < sounds.count) ? imported_sub_beat_idx - 1 : 0; // same here
+    int beat_idx = (w.primary_beat_no != -1 && (w.primary_beat_no - 1) < sounds.count) ? w.primary_beat_no - 1 : 0;
+    // = (imported_beat_idx != -1 && (imported_beat_idx - 1) < sounds.count) ? imported_beat_idx - 1 : 0; // removing 1 because the UI is 1-indexed 
+    int sub_beat_idx = (w.secondary_beat_no != -1 && (w.secondary_beat_no - 1) < sounds.count) ? w.secondary_beat_no - 1 : 0;
+    // = (imported_sub_beat_idx != -1 && (imported_sub_beat_idx - 1) < sounds.count) ? imported_sub_beat_idx - 1 : 0; // same here
 
     beat_sound = sounds.sounds[beat_idx];
     sub_beat_sound = sounds.sounds[sub_beat_idx];
@@ -367,13 +449,18 @@ int main(void) {
 
     CloseAudioDevice();
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------
 
     // deletes previous config, we will rewrite it
     FILE * config_file = fopen("./metronome.config", "w+");
     fprintf_s(config_file, "PRIMARY = %d\nSECONDARY = %d\n", beat_idx + 1, sub_beat_idx + 1); // adding one to from 0-idx to 1-idx
     printf("INFO: CONFIG: Updated config file, primary = %d and secondary = %d.\n", beat_idx + 1, sub_beat_idx + 1); // same here
+    fprintf_s(config_file, "BEATSDIR = \"%s\"\nSTYLEPATH = \"%s\"", w.beats_directory, w.style_filepath);
     fclose(config_file);
+
+    wrzDestroyProgramConfig(&w);
+
+    //------------------------------------------------------------------------------
 
     return 0;
 }
