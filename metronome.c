@@ -13,6 +13,8 @@
 #define VERSIONNO "1.9"
 #define BEATSDIR "./resources/beats/"
 
+#define CUSTOMSTYLE "./resources/styles/style_cyber.rgs"
+
 //------------------------------------------------------------------------------
 
 typedef struct {
@@ -94,24 +96,28 @@ int wrzSelectBeatSounds(int * primary, int * secondary, int count) {
 
 //------------------------------------------------------------------------------
 
-void wrzDrawStaticElements() {
+void wrzDrawStaticElements(Font font, float text_spacing) {
+    Color c = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL));
+    Color bgc = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
+    Color txtc = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
+
     const char * title = TextFormat("WRZ: Metronome v.%s -- %03d FPS", VERSIONNO, GetFPS());
     // "static" of course meaning non-user-interactable, not completely unchanging.
     const char * to_exit = "Press ESC to exit.";
 
-    int to_exit_width = MeasureText(to_exit, 20);
+    int to_exit_width = (int) (MeasureTextEx(font, to_exit, 20, text_spacing)).x;
 
     //------------------------------------------------------------------------------
-    DrawRectangle(0, 0, WIDTH, 50, Fade(LIGHTGRAY, .50f)); // background for title text
-    DrawRectangle(0, 0, WIDTH, 40, LIGHTGRAY);
+    DrawRectangle(0, 0, WIDTH, 50, Fade(c, .50f)); // background for title text
+    DrawRectangle(0, 0, WIDTH, 40, c);
 
-    DrawText(title, 10, 10, 20, BLACK);
-    DrawText(to_exit, (WIDTH - 10 - to_exit_width), 10, 20, BLACK);
+    DrawTextEx(font, title, (Vector2) { 10, 10 }, 20, text_spacing, txtc);
+    DrawTextEx(font, to_exit, (Vector2) { (WIDTH - 10 - to_exit_width), 10 }, 20, text_spacing, txtc);
     //------------------------------------------------------------------------------
-    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 460, 30.0f, RAYWHITE); // main metronome background triangle
-    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 440, 30.0f, Fade(LIGHTGRAY, .25f));
-    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 420, 30.0f, Fade(LIGHTGRAY, .50f));
-    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 400, 30.0f, LIGHTGRAY);
+    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 460, 30.0f, bgc); // main metronome background triangle
+    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 440, 30.0f, Fade(c, .25f));
+    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 420, 30.0f, Fade(c, .50f));
+    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 400, 30.0f, c);
 }
 
 //------------------------------------------------------------------------------
@@ -169,18 +175,18 @@ void wrzBeatAnimation(float deltaTime, float spb) {
 }
 
 // maybe this and wrzDrawSubBPM() should just be one function?
-void wrzDrawBPM(int bpm) {
+void wrzDrawBPM(int bpm, Font font, float text_spacing) {
     const char * text = TextFormat("%d", bpm);
-    int width = MeasureText(text, 140);
+    int width = (MeasureTextEx(font, text, 140, text_spacing)).x;
 
-    DrawText(text, (WIDTH - width) / 2, 450, 140, RAYWHITE);
+    DrawTextEx(font, text, (Vector2) { (WIDTH - width) / 2, 450 }, 140, text_spacing, RAYWHITE);
 }
 
 // NOTE: takes subdivided bpm
-void wrzDrawSubBPM(int bpm) {
+void wrzDrawSubBPM(int bpm, Font font, float text_spacing) {
     const char * text = TextFormat("%d", bpm);
-    int width = MeasureText(text, 40);
-    DrawText(text, (WIDTH - width) / 2, 575, 40, RAYWHITE);
+    int width = (MeasureTextEx(font, text, 40, text_spacing)).x;
+    DrawTextEx(font, text, (Vector2) { (WIDTH - width) / 2, 575 }, 40, text_spacing, RAYWHITE);
 }
 
 //------------------------------------------------------------------------------
@@ -192,8 +198,21 @@ int main(void) {
 
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 20); // raygui, set the default style's text size to 20
-    // this should not interfere with any custom raygui styles, though i would recommend any styles to use font size 20
+    //------------------------------------------------------------------------------
+
+    #ifdef CUSTOMSTYLE
+    GuiLoadStyle(CUSTOMSTYLE);
+    #endif
+
+    Color clear_color = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
+    Font font = GuiGetFont();
+    float text_spacing = GuiGetStyle(DEFAULT, TEXT_SPACING);
+
+    #ifndef CUSTOMSTYLE
+    text_spacing *= 2;
+    #endif
+
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 20); // raygui, set the style's text size to 20
 
     //------------------------------------------------------------------------------
 
@@ -251,13 +270,13 @@ int main(void) {
     while(!WindowShouldClose()) {
         BeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            ClearBackground(clear_color);
 
             //------------------------------------------------------------------------------
 
             wrzSpeedSelectionButtons(&bpm); // draw speed selection buttons below background triangle + get bpm
 
-            wrzDrawStaticElements(); // draw the title and background triangle
+            wrzDrawStaticElements(font, text_spacing); // draw the title and background triangle
 
             wrzSpeedSelectionSlider(&bpm); // draw the slider + get/set bpm
 
@@ -293,8 +312,8 @@ int main(void) {
 
             wrzBeatAnimation(deltaTime, spb); // play the beating animation
 
-            wrzDrawBPM((int) floor(bpm)); // draw the bpm text over the beating animation
-            if(subdivision > 1) wrzDrawSubBPM((int) floor(bpm) * subdivision); // draw subdivided BPM if there is subdivision
+            wrzDrawBPM((int) floor(bpm), font, text_spacing); // draw the bpm text over the beating animation
+            if(subdivision > 1) wrzDrawSubBPM((int) floor(bpm) * subdivision, font, text_spacing); // draw subdivided BPM if there is subdivision
 
         EndDrawing();
     }
