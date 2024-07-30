@@ -24,7 +24,7 @@ Click the left and right buttons below the slider to set the primary and seconda
 
  ### Customization
 
-Any Raylib-supported audio file in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. Anything that's not audio will be "loaded," the app will simply play nothing there because Raylib's sound loader will only warn about such things. Just be sure to keep that folder cogent. By default, the first alphabetically will be the primary click sound, and the second the secondary. I don't yet have a mechanism to save which sounds should be primary and secondary, so plan accordingly.
+Any `.wav`, `.mp3`, .`ogg`, or `.flac` in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. By default, the first alphabetically will be the primary click sound, and the second the secondary. I don't yet have a mechanism to save which sounds should be primary and secondary, so plan accordingly.
 
 To use a different beats folder, edit the line towards the top of `metronome.c` that reads as follows:
 ```c
