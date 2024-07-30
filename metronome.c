@@ -17,15 +17,14 @@
 
 typedef struct {
     Sound * sounds;
-    int err, count;
-} wrzBeatSounds;
+    int count;
+} wrzBeatSounds; // return type for wrzLoadBeatSounds()
 
 //------------------------------------------------------------------------------
 
+// TODO: make this function skip non-audio files
 wrzBeatSounds wrzLoadBeatSounds(const char * dir) {
     wrzBeatSounds output;
-
-    output.err = 0; // no error
 
     if(!DirectoryExists(dir)) {
         printf("ERROR: Could not load beat sounds filepath \"%s!\" Check that this directory exists!\n", dir);
@@ -81,19 +80,19 @@ int wrzSelectBeatSounds(int * primary, int * secondary, int count) {
 
 void wrzDrawStaticElements() {
     const char * title = TextFormat("WRZ: Metronome v.%s -- %03d FPS", VERSIONNO, GetFPS());
-    // "static" of course meaning non-user-interacteable, not completely unchanging.
+    // "static" of course meaning non-user-interactable, not completely unchanging.
     const char * to_exit = "Press ESC to exit.";
 
     int to_exit_width = MeasureText(to_exit, 20);
 
     //------------------------------------------------------------------------------
-    DrawRectangle(0, 0, WIDTH, 50, Fade(LIGHTGRAY, .50f));
+    DrawRectangle(0, 0, WIDTH, 50, Fade(LIGHTGRAY, .50f)); // background for title text
     DrawRectangle(0, 0, WIDTH, 40, LIGHTGRAY);
 
     DrawText(title, 10, 10, 20, BLACK);
     DrawText(to_exit, (WIDTH - 10 - to_exit_width), 10, 20, BLACK);
     //------------------------------------------------------------------------------
-    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 460, 30.0f, RAYWHITE);
+    DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 460, 30.0f, RAYWHITE); // main metronome background triangle
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 440, 30.0f, Fade(LIGHTGRAY, .25f));
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 420, 30.0f, Fade(LIGHTGRAY, .50f));
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 400, 30.0f, LIGHTGRAY);
@@ -107,55 +106,53 @@ void wrzSpeedSelectionSlider(float * bpm) {
 }
 
 // NOTE: modifies `bpm`
+// TODO: make this less janky
 void wrzSpeedInputBox(char ** input_buffer, int input_buffer_size, float * bpm) {
     snprintf(*input_buffer, input_buffer_size, "%03d", (int) (*bpm)); // this makes the text box kind of annoying but it seems to be necessary
     GuiTextBox((Rectangle) { 300, 800, 50, 40 }, *input_buffer, 120, true);
     *bpm = (float) atoi(*input_buffer); // i've heard atoi is no good, maybe i'll change this
 }
 
+// used in wrzSpeedSelectionButtons(), just some common tempi to be rendered in button form for ease of use
+// these are customizable, just edit this list. max bpm is 300, min is 1
+int left_side_numbers[9] = { 108, 120, 128, 132, 136, 140, 144, 148, 152 };
+int right_side_numbers[9] = { 100, 96, 92, 88, 80, 72, 66, 60, 52 };
+
+// NOTE: modifies `bpm`
 void wrzSpeedSelectionButtons(float * bpm) {
-    // TODO: there's probably a better way to do this, probably with a list of tempi and a loop...
-    // NOTE: dx = -35, dy = 60, strlen = 13
-    //------------------------------------------------------------------------------
-    // left side
-    if( GuiButton((Rectangle) { 480, 180, 100, 50 }, "108      ") ) *bpm = 108.0f;
-    if( GuiButton((Rectangle) { 445, 240, 100, 50 }, "120      ") ) *bpm = 120.0f;
-    if( GuiButton((Rectangle) { 410, 300, 100, 50 }, "128      ") ) *bpm = 128.0f;
-    if( GuiButton((Rectangle) { 375, 360, 100, 50 }, "132      ") ) *bpm = 132.0f;
-    if( GuiButton((Rectangle) { 340, 420, 100, 50 }, "136      ") ) *bpm = 136.0f;
-    if( GuiButton((Rectangle) { 305, 480, 100, 50 }, "140      ") ) *bpm = 140.0f;
-    if( GuiButton((Rectangle) { 270, 540, 100, 50 }, "144      ") ) *bpm = 144.0f;
-    if( GuiButton((Rectangle) { 235, 600, 100, 50 }, "148      ") ) *bpm = 148.0f;
-    if( GuiButton((Rectangle) { 200, 660, 100, 50 }, "152      ") ) *bpm = 152.0f;
-    //------------------------------------------------------------------------------
-    // now, dx = 35, dy = 60, strlen = 13
-    if( GuiButton((Rectangle) { 620, 180, 100, 50 }, "      100") ) *bpm = 100.0f;
-    if( GuiButton((Rectangle) { 655, 240, 100, 50 }, "       96") ) *bpm =  96.0f;
-    if( GuiButton((Rectangle) { 690, 300, 100, 50 }, "       92") ) *bpm =  92.0f;
-    if( GuiButton((Rectangle) { 725, 360, 100, 50 }, "       88") ) *bpm =  88.0f;
-    if( GuiButton((Rectangle) { 760, 420, 100, 50 }, "       80") ) *bpm =  80.0f;
-    if( GuiButton((Rectangle) { 795, 480, 100, 50 }, "       72") ) *bpm =  72.0f;
-    if( GuiButton((Rectangle) { 830, 540, 100, 50 }, "       66") ) *bpm =  66.0f;
-    if( GuiButton((Rectangle) { 865, 600, 100, 50 }, "       60") ) *bpm =  60.0f;
-    if( GuiButton((Rectangle) { 895, 660, 100, 50 }, "       52") ) *bpm =  52.0f;
+    // left side, dx = -35, dy = 60
+    for(int i = 0; i < 9; i++) {
+        int render_bpm = left_side_numbers[i];
+        if( GuiButton((Rectangle) { 480 - (35 * i), 180 + (60 * i), 100, 50 }, TextFormat((render_bpm > 99) ? "%03d      " : "%02d       ", render_bpm)) ) *bpm = (float) render_bpm;    
+    }
+
+    // right side, now, dx = 35
+    for(int j = 0; j < 9; j++) {
+        int render_bpm = right_side_numbers[j];
+        if( GuiButton((Rectangle) { 620 + (35 * j), 180 + (60 * j), 100, 50 }, TextFormat((render_bpm > 99) ? "      %03d" : "       %02d", render_bpm)) ) *bpm = (float) render_bpm;
+    }
 }
 
 //------------------------------------------------------------------------------
 
 void wrzSubdivisionSelectionButton(int * subdivision) {
+    // render button with overflow
     if( GuiButton((Rectangle) { 850, 800, 50, 40 }, TextFormat("%1d", (int) *subdivision))) *subdivision = ((*subdivision) % 6) + 1;
 }
 
 //------------------------------------------------------------------------------
 
+// TODO: create an alternate animation for sub-beats
 void wrzBeatAnimation(float deltaTime, float spb) {
-    float raw_scale = 1.1f * (spb - (deltaTime)) / spb; // what fraction of time have been in between this and the next beat
+    float raw_scale = 1.1f * (spb - (deltaTime)) / spb; 
+    // calculate what fraction of time have been in between this and the next beat
     // multiplied by 1.1f and then clamped so that the triangle stays at its widest for the briefest instant
     // this helps with establishing the visual timing cue if it just stays still for a small amount of time 
     float scale = Clamp(raw_scale, 0.0f, 1.0f);
     DrawPoly((Vector2) { WIDTH / 2, 550 }, 3, 400 * scale, 30.0f, Fade(GRAY, 0.2f * scale));
 }
 
+// maybe this and wrzDrawSubBPM() should just be one function?
 void wrzDrawBPM(int bpm) {
     const char * text = TextFormat("%d", bpm);
     int width = MeasureText(text, 140);
@@ -174,11 +171,13 @@ void wrzDrawSubBPM(int bpm) {
 
 int main(void) {
     //------------------------------------------------------------------------------
+
     InitWindow(WIDTH, HEIGHT, "WRZ: Metronome v." VERSIONNO);
 
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 20); // set text size to 20
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 20); // raygui, set the default style's text size to 20
+    // this should not interfere with any custom raygui styles, though i would recommend any styles to use font size 20
 
     //------------------------------------------------------------------------------
 
@@ -190,22 +189,22 @@ int main(void) {
 
     // Unload icon image from memory
     UnloadImage(icon_img);
+
     //------------------------------------------------------------------------------
 
     InitAudioDevice();
-    wrzBeatSounds sounds = wrzLoadBeatSounds(BEATSDIR);
+    wrzBeatSounds sounds = wrzLoadBeatSounds(BEATSDIR); // load beat sounds from filesystem
+    // NOTE: this function should capture errors with missing files by itself, but i have not thoroughly tested this
 
     Sound beat_sound = { 0 };
     Sound sub_beat_sound = { 0 };
 
-    // which beat and sub-beat are to be played
+    // which beat and sub-beat are to be played, indexing into sounds.sounds[]
     int beat_idx;
     int sub_beat_idx;
 
-    if(sounds.err == 0) {
-        beat_sound = sounds.sounds[0];
-        beat_idx = 0;
-    } // error handling should be handled by wrzLoadwrzBeatSounds() itself, so no else is needed
+    beat_sound = sounds.sounds[0];
+    beat_idx = 0;
 
     if(sounds.count > 1) { // if there is more than one sound
         sub_beat_sound = sounds.sounds[1];
@@ -217,12 +216,11 @@ int main(void) {
 
     //------------------------------------------------------------------------------
 
-    // GUI sliders work in floats -- musical bpms are almost always integers
+    // raygui sliders work in floats, not integers
     float bpm = 60.0f;
 
     // change in time since the last frame
     double deltaTime = 0.0f;
-    double subDivDeltaTime = 0.0f;
 
     // prepare speed input buffer
     int input_buffer_size = 4; // max input is '3' '0' '0' '\0'
@@ -241,60 +239,52 @@ int main(void) {
 
             //------------------------------------------------------------------------------
 
-            wrzSpeedSelectionButtons(&bpm);
+            wrzSpeedSelectionButtons(&bpm); // draw speed selection buttons below background triangle + get bpm
 
             wrzDrawStaticElements(); // draw the title and background triangle
 
-            wrzSpeedSelectionSlider(&bpm); // get the bpm (float) from the slider
+            wrzSpeedSelectionSlider(&bpm); // draw the slider + get/set bpm
 
-            wrzSpeedInputBox(&input_buffer, input_buffer_size, &bpm);
+            wrzSpeedInputBox(&input_buffer, input_buffer_size, &bpm); // draw the text input box + get/set bpm
 
-            wrzSubdivisionSelectionButton(&subdivision);
+            wrzSubdivisionSelectionButton(&subdivision); // draw the subdivision button + get subdivision
 
             // beat change is 0 normally, 1 if the primary has changed, and 2 if the secondary has changed
             int beat_change = wrzSelectBeatSounds(&beat_idx, &sub_beat_idx, sounds.count);
 
-            if(beat_change > 1) {
+            if(beat_change == 2) {
                 sub_beat_sound = sounds.sounds[sub_beat_idx];
-            } else if(beat_change > 0) { // if it's not greater than 1, but greater than 0, it must be 1
+            } else if(beat_change == 1) {
                 beat_sound = sounds.sounds[beat_idx];
             } // else, no change
 
             //------------------------------------------------------------------------------
             
             float spb = 60 * (1 / (float) (bpm * subdivision)); // convert from beats-per-minute to seconds-per-beat
-            // float subspb = 60 * (1 / (float) (bpm * (int) subdivision));
 
-            deltaTime += GetFrameTime(); // add to the deltaTime
+            deltaTime += GetFrameTime(); // add to the change in time since last click
 
             if(deltaTime >= spb) { // if it has been long enough for the next beat
-                if(sub_play_counter > 0) PlaySound(sub_beat_sound);
-                else PlaySound(beat_sound);
-                deltaTime = 0.0f; // reset the timer
-                if(subdivision > 1) sub_play_counter = (sub_play_counter + 1) % subdivision;
-                else sub_play_counter = 0;
-            }
+                if(sub_play_counter > 0) PlaySound(sub_beat_sound); // play the sub beat sound, if it's time to
+                else PlaySound(beat_sound); // otherwise, play the primary beat sound
 
-            /*
-            if(subDivDeltaTime >= subspb && !(deltaTime >= spb)) {
-                if(!IsSoundPlaying(beat_sound)) PlaySound(sub_beat_sound);
-                printf("INFO: subDivDeltaTime = %.4f\n", subDivDeltaTime);
-                subDivDeltaTime = 0.0f;
+                deltaTime = 0.0f; // reset the timer
+                if(subdivision > 1) sub_play_counter = (sub_play_counter + 1) % subdivision; // increment the subdivision counter with overflow
+                else sub_play_counter = 0; // if subdivision is 1, always play the main beat sound
             }
-            */
 
             //------------------------------------------------------------------------------
 
             wrzBeatAnimation(deltaTime, spb); // play the beating animation
 
             wrzDrawBPM((int) floor(bpm)); // draw the bpm text over the beating animation
-            if(subdivision > 1) wrzDrawSubBPM((int) floor(bpm) * subdivision);
+            if(subdivision > 1) wrzDrawSubBPM((int) floor(bpm) * subdivision); // draw subdivided BPM if there is subdivision
 
         EndDrawing();
     }
 
-    wrzDestroyBeatSounds(&sounds);
-    free(input_buffer);
+    wrzDestroyBeatSounds(&sounds); // free sounds->sounds
+    free(input_buffer); // bpm text input buffer
 
     CloseWindow();
 
