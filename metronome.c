@@ -161,10 +161,13 @@ wrzProgramConfig wrzLoadProgramConfig(const char * filepath) {
 
     if(!DirectoryExists(imported_beats_dir_buffer)) {
         printf("WARNING: CONFIG: Provided beats directory \"%s\" does not exist! Attemping to load default directory...\n", imported_beats_dir_buffer);
+
         if(!DirectoryExists("./resources/beats/")) {
             printf("ERROR: CONFIG: No beats directory found!\n");
             exit(4);
         }
+        
+        strcpy(imported_beats_dir_buffer, "./resources/beats"); // attempt to load default sounds
     }
     
     printf("INFO: CONFIG: Loaded config option, beats directory is \"%s\".\n", imported_beats_dir_buffer);
