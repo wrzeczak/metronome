@@ -30,7 +30,7 @@ This program uses a custom config file format. By default, it will look for `./m
 ```
 to the (relative or absolute) path to your file. If this path does not exist, the program will automatically warn you about it, create a default config file `./metronome.config`, and load that.
 
-**Be careful when manually editing the config file to keep the format the same as it came by default. The config file reader does not perform very much error checking. The file MUST have all four config options, and there MUST be two quotation marks for the string values; they can be empty strings.**
+**Be careful when manually editing the config file to keep the format the same as it came by default. The config file reader does not perform very much error checking. The file MUST have all four config options, and there MUST be two quotation marks for the string values; they can be empty strings. The file reader also does not check for arbitrary code execution, so be sure to check a) that your .config file has nothing suspicious and b) that metronome.c is actually reading the .config file you want it to.**
 
 To use a different beats folder, change the value of `BEATSDIR = "..."`. If that directory does not exist, the program will try to load `./resources/beats`, the default; if that does not exist, the program will error and exit. If no files are found in the specified folder, the program will try to load `./resources/beats/default-beat.wav`, then try `./resources/beats/defualt-sub-beat.wav`, and if neither of those exist, it will error and exit.
 
