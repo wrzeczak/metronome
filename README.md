@@ -3,7 +3,9 @@
 A basic metronome utility.
 
 
-https://github.com/user-attachments/assets/020f7987-a645-4d39-af3d-a4fd3e894850
+
+https://github.com/user-attachments/assets/f9a8662f-9e3e-4445-8ce0-31b3c52c93c2
+
 
 
 ---
