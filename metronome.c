@@ -13,7 +13,7 @@
 #define VERSIONNO "1.9"
 #define BEATSDIR "./resources/beats/"
 
-#define CUSTOMSTYLE "./resources/styles/style_cyber.rgs"
+// #define CUSTOMSTYLE "./resources/styles/style_cyber.rgs"
 
 //------------------------------------------------------------------------------
 
