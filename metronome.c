@@ -200,18 +200,17 @@ void wrzBeatAnimation(float deltaTime, float spb) {
 }
 
 // maybe this and wrzDrawSubBPM() should just be one function?
-void wrzDrawBPM(int bpm, Font font, float text_spacing) {
-    const char * text = TextFormat("%d", bpm);
-    int width = (MeasureTextEx(font, text, 140, text_spacing)).x;
+void wrzDrawBPM(int bpm, int subdivision, Font font, float text_spacing, Color text_color) {
+    int sub_bpm = bpm * subdivision;
 
-    DrawTextEx(font, text, (Vector2) { (WIDTH - width) / 2, 450 }, 140, text_spacing, RAYWHITE);
-}
+    const char * text     = TextFormat("%d", bpm);
+    const char * sub_text = TextFormat("%d", sub_bpm);
+    
+    int width     = (MeasureTextEx(font, text,     140, text_spacing)).x;
+    int sub_width = (MeasureTextEx(font, sub_text, 40,  text_spacing)).x;
 
-// NOTE: takes subdivided bpm
-void wrzDrawSubBPM(int bpm, Font font, float text_spacing) {
-    const char * text = TextFormat("%d", bpm);
-    int width = (MeasureTextEx(font, text, 40, text_spacing)).x;
-    DrawTextEx(font, text, (Vector2) { (WIDTH - width) / 2, 575 }, 40, text_spacing, RAYWHITE);
+    DrawTextEx(font, text, (Vector2) { (WIDTH - width) / 2, 450 }, 140, text_spacing, text_color);
+    if(subdivision > 1) DrawTextEx(font, sub_text, (Vector2) { (WIDTH - sub_width) / 2, 575 }, 40, text_spacing, text_color);
 }
 
 //------------------------------------------------------------------------------
@@ -356,8 +355,7 @@ int main(void) {
 
             wrzBeatAnimation(deltaTime, spb); // play the beating animation
 
-            wrzDrawBPM((int) floor(bpm), font, text_spacing); // draw the bpm text over the beating animation
-            if(subdivision > 1) wrzDrawSubBPM((int) floor(bpm) * subdivision, font, text_spacing); // draw subdivided BPM if there is subdivision
+            wrzDrawBPM((int) floor(bpm), subdivision, font, text_spacing, text_color); // draw the bpm text over the beating animation
 
         EndDrawing();
     }
@@ -371,13 +369,11 @@ int main(void) {
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    if(FileExists("./metronome.config")) {
-        // deletes previous config, we will rewrite it
-        FILE * config_file = fopen("./metronome.config", "w+");
-        fprintf_s(config_file, "PRIMARY = %d\nSECONDARY = %d\n", beat_idx + 1, sub_beat_idx + 1); // adding one to from 0-idx to 1-idx
-        printf("INFO: CONFIG: Updated config file, primary = %d and secondary = %d.\n", beat_idx + 1, sub_beat_idx + 1); // same here
-        fclose(config_file);
-    }
+    // deletes previous config, we will rewrite it
+    FILE * config_file = fopen("./metronome.config", "w+");
+    fprintf_s(config_file, "PRIMARY = %d\nSECONDARY = %d\n", beat_idx + 1, sub_beat_idx + 1); // adding one to from 0-idx to 1-idx
+    printf("INFO: CONFIG: Updated config file, primary = %d and secondary = %d.\n", beat_idx + 1, sub_beat_idx + 1); // same here
+    fclose(config_file);
 
     return 0;
 }
