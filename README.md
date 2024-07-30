@@ -39,6 +39,12 @@ int right_side_numbers[9] = { ... };
 ```
 with any replacement numbers (integers only) you want, so long as they are between 300 and 1, inclusive. There can be fewer than 9 numbers (the number between the square brackets [] must match the number of elements in the list), but there cannot be more than 9, and there must be at least 1. If you want to remove the common tempi, then comment out the two loops inside `wrzSpeedSelectionButtons()`, and for thoroughness' sake the two lists of numbers. The compiler might warn you about an empty function if you do this.
 
+This program supports using custom raygui styles. To set a custom style, edit the line that reads as follows:
+```c
+#define CUSTOMSTYLE "..."
+```
+with the filepath (relative or absolute) to your preferred .rgs file. The line might be commented out.
+
 ### Error compiling?
 
 `undefined reference to TextToFloat()`: this will happen if you use Raylib 5.0 and the latest `raygui.h` (as of July 2024). Move `TextToFloat()` above `GuiValueBoxFloat()` in the code. **If you use the provided `raygui.h` you should not encounter this issue.**

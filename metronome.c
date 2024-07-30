@@ -13,7 +13,7 @@
 #define VERSIONNO "1.9"
 #define BEATSDIR "./resources/beats/"
 
-// #define CUSTOMSTYLE "./resources/styles/style_cyber.rgs"
+#define CUSTOMSTYLE "./resources/styles/style_cyber.rgs"
 
 //------------------------------------------------------------------------------
 
@@ -96,10 +96,7 @@ int wrzSelectBeatSounds(int * primary, int * secondary, int count) {
 
 //------------------------------------------------------------------------------
 
-void wrzDrawStaticElements(Font font, float text_spacing) {
-    Color c = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL));
-    Color bgc = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
-    Color txtc = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
+void wrzDrawStaticElements(Font font, float text_spacing, Color bgc, Color c, Color txtc) {
 
     const char * title = TextFormat("WRZ: Metronome v.%s -- %03d FPS", VERSIONNO, GetFPS());
     // "static" of course meaning non-user-interactable, not completely unchanging.
@@ -205,6 +202,9 @@ int main(void) {
     #endif
 
     Color clear_color = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
+    Color fill_color = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL));
+    Color text_color = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
+
     Font font = GuiGetFont();
     float text_spacing = GuiGetStyle(DEFAULT, TEXT_SPACING);
 
@@ -276,7 +276,7 @@ int main(void) {
 
             wrzSpeedSelectionButtons(&bpm); // draw speed selection buttons below background triangle + get bpm
 
-            wrzDrawStaticElements(font, text_spacing); // draw the title and background triangle
+            wrzDrawStaticElements(font, text_spacing, clear_color, fill_color, text_color); // draw the title and background triangle
 
             wrzSpeedSelectionSlider(&bpm); // draw the slider + get/set bpm
 
