@@ -27,14 +27,15 @@ wrzBeatSounds wrzLoadBeatSounds(const char * dir) {
     wrzBeatSounds output;
 
     if(!DirectoryExists(dir)) {
-        printf("ERROR: Could not load beat sounds filepath \"%s!\" Check that this directory exists!\n", dir);
+        printf("ERROR: Could not load beat sounds filepath \"%s\"! Check that this directory exists!\n", dir);
         exit(1);
     }
 
     // Raylib's supported filetypes -- wav, mp3, ogg, flac, qoa, xm, mod
     FilePathList wavs = LoadDirectoryFiles(dir);
 
-    printf("INFO: BEATS: `%s` contains %d file(s).\n", dir, wavs.count);
+    if(wavs.count == 0) printf("WARNING: No files found in \"%s\". Attempting to load defaults...\n", dir);
+    else printf("INFO: `%s` contains %d file(s).\n", dir, wavs.count);
 
     if(wavs.count > 0) {
         output.sounds = malloc(wavs.count * sizeof(Sound));
@@ -45,9 +46,24 @@ wrzBeatSounds wrzLoadBeatSounds(const char * dir) {
 
         output.count = wavs.count;
     } else { // if no files are found in the beats directory, load the default one
-        output.sounds = malloc(sizeof(Sound));
-        output.sounds[0] = LoadSound("./resources/default-beat.wav");
-        output.count = 1;
+        bool cooked = false;
+
+        if(FileExists("./resources/beats/default-beat.wav")) {
+            output.sounds = malloc(sizeof(Sound));
+            output.sounds[0] = LoadSound("./resources/beats/default-beat.wav");
+            output.count = 1;
+        } else cooked = true; // if this file doesn't exist, we're probably cooked
+        
+        if(FileExists("./resources/beats/default-sub-beat.wav")) { // if the default click is gone, load the default sub click
+            cooked = false; // we're not cooked
+            output.sounds = malloc(sizeof(Sound));
+            output.sounds[0] = LoadSound("./resources/beats/default-sub-beat.wav");
+            output.count = 1;
+        } // if both default files are missing, then things are truly over
+        if(cooked) {
+            printf("ERROR: \"%s\" is empty and the defaults are missing. The West has fallen.\n", dir);
+            exit(2);
+        }
     }
 
     free(wavs.paths);
@@ -115,8 +131,8 @@ void wrzSpeedInputBox(char ** input_buffer, int input_buffer_size, float * bpm) 
 
 // used in wrzSpeedSelectionButtons(), just some common tempi to be rendered in button form for ease of use
 // these are customizable, just edit this list. max bpm is 300, min is 1
-int left_side_numbers[9] = { 108, 120, 128, 132, 136, 140, 144, 148, 152 };
-int right_side_numbers[9] = { 100, 96, 92, 88, 80, 72, 66, 60, 52 };
+int left_side_numbers[9] =  { 108, 120, 128, 132, 136, 140, 144, 148, 152 };
+int right_side_numbers[9] = { 100, 96,  92,  88,  80,  72,  66,  60,  52 };
 
 // NOTE: modifies `bpm`
 void wrzSpeedSelectionButtons(float * bpm) {
