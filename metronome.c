@@ -33,20 +33,47 @@ wrzBeatSounds wrzLoadBeatSounds(const char * dir) {
         exit(1);
     }
 
-    // Raylib's supported filetypes -- wav, mp3, ogg, flac, qoa, xm, mod
-    FilePathList wavs = LoadDirectoryFiles(dir);
+    //------------------------------------------------------------------------------
 
-    if(wavs.count == 0) printf("WARNING: No files found in \"%s\". Attempting to load defaults...\n", dir);
-    else printf("INFO: `%s` contains %d file(s).\n", dir, wavs.count);
+    // Raylib's supported filetypes -- wav, mp3, ogg, flac, and a few more but if you're that kind of nerd you can do it yourself
+    FilePathList wavs = LoadDirectoryFilesEx(dir, ".wav",  true);
+    FilePathList mp3s = LoadDirectoryFilesEx(dir, ".mp3",  true);
+    FilePathList oggs = LoadDirectoryFilesEx(dir, ".ogg",  true);
+    FilePathList flac = LoadDirectoryFilesEx(dir, ".flac", true);
+    // is it annoying that flac is not plural? less annoying than them not being all 4 characters, i think
 
-    if(wavs.count > 0) {
-        output.sounds = malloc(wavs.count * sizeof(Sound));
+    // monolithic filepath since i don't think i can filter for multiple filetypes
+    FilePathList files = { 0 };
 
-        for(int i = 0; i < wavs.count; i++) {
-            output.sounds[i] = LoadSound(wavs.paths[i]);
+    files.count = wavs.count + mp3s.count + oggs.count + flac.count;
+    files.paths = malloc(sizeof(char **) * files.count);
+
+    // please let me know if this is disgusting and bad
+    if(wavs.count > 0) for(int i = 0; i < wavs.count; i++) files.paths[i] = wavs.paths[i];
+    if(mp3s.count > 0) for(int j = 0; j < mp3s.count; j++) files.paths[j + wavs.count] = mp3s.paths[j];
+    if(oggs.count > 0) for(int k = 0; k < oggs.count; k++) files.paths[k + wavs.count + mp3s.count] = oggs.paths[k];
+    if(flac.count > 0) for(int l = 0; l < mp3s.count; l++) files.paths[l + wavs.count + mp3s.count + oggs.count] = flac.paths[l];
+
+    free(wavs.paths);
+    free(mp3s.paths);
+    free(oggs.paths);
+    free(flac.paths);
+
+    printf("INFO: files.count = %d\n", files.count);
+
+    //------------------------------------------------------------------------------
+
+    if(files.count == 0) printf("WARNING: No files found in \"%s\". Attempting to load defaults...\n", dir);
+    else printf("INFO: `%s` contains %d file(s).\n", dir, files.count);
+
+    if(files.count > 0) {
+        output.sounds = malloc(files.count * sizeof(Sound));
+
+        for(int i = 0; i < files.count; i++) {
+            output.sounds[i] = LoadSound(files.paths[i]);
         }
 
-        output.count = wavs.count;
+        output.count = files.count;
     } else { // if no files are found in the beats directory, load the default one
         bool cooked = false;
 
@@ -68,7 +95,7 @@ wrzBeatSounds wrzLoadBeatSounds(const char * dir) {
         }
     }
 
-    free(wavs.paths);
+    free(files.paths);
 
     return output;
 }
