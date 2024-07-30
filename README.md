@@ -49,6 +49,10 @@ with any replacement numbers (integers only) you want, so long as they are betwe
 
 `undefined reference to TextToFloat()`: this will happen if you use Raylib 5.0 and the latest `raygui.h` (as of July 2024). Move `TextToFloat()` above `GuiValueBoxFloat()` in the code. **If you use the provided `raygui.h` you should not encounter this issue.**
 
+`Linker not finding fscanf_s() and sscanf_s()`: this is because I'm developing on Windows, and if you try to compile on Linux (and maybe Mac? not tested) these functions are called `fscanf()` and `sscanf()` respectively. Simply change all instances of `fscanf_s()` to `fscanf()`, and of `sscanf_s()` to `sscanf()`.
+
+`Linker cannot find -lgdi32 and -lwinmm`: this is because, with w64devkit, these includes are necessary for raylib on Windows. If you're getting this issue on Linux, delete them from the make command. If you're getting this error on Windows, it's possible that your `gcc` is not w64devkit's, but something else, and maybe that in your toolchain you don't need `-lgdi32` and `-lwinmm`; try deleting them, and let me know if you encounter this issue on Windows, I haven't tested it (`wrzeczak@protonmail.com`!).
+
 ### Intended Features
 
 - ~~Text input for bpm (v.1.0)~~

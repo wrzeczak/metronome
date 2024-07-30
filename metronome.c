@@ -161,7 +161,7 @@ wrzProgramConfig wrzLoadProgramConfig(const char * filepath) {
 
     memset(config_file_line, '\0', 255); // clear the line buffer to avoid funny business
 
-    // every fgets() call advances by one line
+    // every fgets() call advances through the file by one line
     fgets(config_file_line, 255, config_file);
     sscanf_s(config_file_line, "SECONDARY = %d", &imported_sub_beat_idx); // load config data as above
     printf("INFO: CONFIG: Loaded config option, secondary beat sound set to #%d.\n", imported_sub_beat_idx);
