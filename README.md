@@ -14,13 +14,17 @@ Compilation should be as simple as `make build`. The only dependency is raylib. 
 
 Click and drag on the blue slider to change the tempo, or use the text input box, or click one of the pre-written tempi. Press `ESC` to exit.
 
+Click on the button to the right of the slider to set the subdivision from 1 (ie. no subdivision) to 6.
+
+Click the left and right buttons below the slider to set the primary and secondary (ie. subdivision) click sounds, respectively.
+
 Any Raylib-supported audio file in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. Anything that's not audio will be "loaded," the app will simply play nothing there because Raylib's sound loader will only warn about such things. Just be sure to keep that folder cogent.
 
 To use a different beats folder, edit the line towards the top of `metronome.c` that reads as follows:
 ```c
 #define BEATSDIR "..."
 ```
-And in between the quotes put the file directory. It can be relative or explicit. If no beats are provided, the app will load `./resources/beats/default-beat.wav`. Be aware that file loading can take a few seconds, so if you have many clicks, be patient.
+And in between the quotes put the file directory. It can be relative or explicit. If no beats are provided, the app will try load `./resources/beats/default-beat.wav`. Be aware that file loading can take a few seconds, so if you have many sounds, be patient.
 
 ### Error compiling?
 
@@ -33,6 +37,6 @@ Click sound source: [errorjones via Reddit](https://www.reddit.com/r/audioengine
 ### Intended Features
 
 - ~~Text input for bpm (v.1.0)~~
-- Easier, more user-friendly system for selecting click sounds (v.1.1)
-- Subdivisions with swing percentage (v.2.0)
+- ~~Easier, more user-friendly system for selecting click sounds (v.1.1)~~
+- ~~Subdivisions~~ (v.1.9) with swing percentage (v.2.0)
 - Time signatures (v.2.1)

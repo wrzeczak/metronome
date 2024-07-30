@@ -4257,7 +4257,7 @@ void GuiLoadStyleDefault(void)
 
     // Initialize default extended property values
     // NOTE: By default, extended property values are initialized to 0
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 20);                // DEFAULT, shared by all controls
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 10);                // DEFAULT, shared by all controls
     GuiSetStyle(DEFAULT, TEXT_SPACING, 1);              // DEFAULT, shared by all controls
     GuiSetStyle(DEFAULT, LINE_COLOR, 0x90abb5ff);       // DEFAULT specific property
     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0xf5f5f5ff); // DEFAULT specific property
