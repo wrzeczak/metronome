@@ -24,17 +24,24 @@ Click the left and right buttons below the slider to set the primary and seconda
 
  ### Customization
 
-Any Raylib-supported audio file in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. Anything that's not audio will be "loaded," the app will simply play nothing there because Raylib's sound loader will only warn about such things. Just be sure to keep that folder cogent.
+Any Raylib-supported audio file in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. Anything that's not audio will be "loaded," the app will simply play nothing there because Raylib's sound loader will only warn about such things. Just be sure to keep that folder cogent. By default, the first alphabetically will be the primary click sound, and the second the secondary. I don't yet have a mechanism to save which sounds should be primary and secondary, so plan accordingly.
 
 To use a different beats folder, edit the line towards the top of `metronome.c` that reads as follows:
 ```c
 #define BEATSDIR "..."
 ```
-And in between the quotes put the file directory. It can be relative or explicit. If no beats are provided, the app will try load `./resources/beats/default-beat.wav`. Be aware that file loading can take a few seconds, so if you have many sounds, be patient.
+and in between the quotes put the file directory. It can be relative or explicit. If no beats are provided, the app will try to load `./resources/beats/default-beat.wav`. Be aware that file loading can take a few seconds, so if you have many sounds, be patient.
+
+You can also change what common tempi are shown on either side of the triangle. Edit the lines above `wrzSpeedSelectionButtons()` that read as follows:
+```c
+int left_side_numbers[9] = { ... };
+int right_side_numbers[9] = { ... };
+```
+with any replacement numbers (integers only) you want, so long as they are between 300 and 1, inclusive. There can be fewer than 9 numbers (the number between the square brackets [] must match the number of elements in the list), but there cannot be more than 9, and there must be at least 1. If you want to remove the common tempi, then comment out the two loops inside `wrzSpeedSelectionButtons()`, and for thoroughness' sake the two lists of numbers. The compiler might warn you about an empty function if you do this.
 
 ### Error compiling?
 
-`undefined reference to TextToFloat()`: this will happen if you use Raylib 5.0 and the latest `raygui.h`, their APIs are not totally in line. Move `TextToFloat()` above `GuiValueBoxFloat()` in the code. If you use the provided `raygui.h` you should not encounter this issue.
+`undefined reference to TextToFloat()`: this will happen if you use Raylib 5.0 and the latest `raygui.h` (as of July 2024). Move `TextToFloat()` above `GuiValueBoxFloat()` in the code. **If you use the provided `raygui.h` you should not encounter this issue.**
 
 ### Intended Features
 
