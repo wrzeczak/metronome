@@ -24,21 +24,27 @@ Click the left and right buttons below the slider to set the primary and seconda
 
  ### Customization
 
-This program uses a custom config file format. By default, it will look for `./metronome.config`, and will create that file if it cannot find it. To use a custom config file, change the line in `metronome.c` that reads as follows:
+This program uses a custom config file format[^0]. By default, it will look for `./metronome.config`, and will create that file if it cannot find it. To use a custom config file, change the line in `metronome.c` that reads as follows:
 ```c
 #define CONFIGPATH "..."
 ```
 to the (relative or absolute) path to your file. If this path does not exist, the program will automatically warn you about it, create a default config file `./metronome.config`, and load that.
 
-**Be careful when manually editing the config file to keep the format the same as it came by default. The config file reader does not perform very much error checking. The file MUST have all four config options, and there MUST be two quotation marks for the string values; they can be empty strings. The file reader also does not check for arbitrary code execution, so be sure to check a) that your .config file has nothing suspicious and b) that metronome.c is actually reading the .config file you want it to.**
+### WARNING ABOUT CONFIGURATION!
+```
+Be careful when manually editing the config file to keep the format the same as it came by default. The config file reader does not
+perform very much error checking. The file MUST have all four config options, and there MUST be two quotation marks for the string
+values; they can be empty strings. The file reader also does not check for arbitrary code execution, so be sure to check a) that
+your .config file has nothing suspicious and b) that metronome.c is actually reading the .config file you want it to.
+```
 
-To use a different beats folder, change the value of `BEATSDIR = "..."`. If that directory does not exist, the program will try to load `./resources/beats`, the default; if that does not exist, the program will error and exit. If no files are found in the specified folder, the program will try to load `./resources/beats/default-beat.wav`, then try `./resources/beats/defualt-sub-beat.wav`, and if neither of those exist, it will error and exit.
+To use a different beats folder, change the value of `BEATSDIR = "..."` in your config file. If that directory does not exist, the program will try to load `./resources/beats`, the default; if that does not exist, the program will error and exit. If no files are found in the specified folder, the program will try to load `./resources/beats/default-beat.wav`, then try `./resources/beats/default-sub-beat.wav`, and if neither of those exist, it will error and exit.
 
-Any `.wav`, `.mp3`, .`ogg`, or `.flac` in the specified beats directory (`BEATSDIR`) will be loaded as a click sound. By default, the first loaded alphabetically will be the primary click sound, and the second loaded the secondary. Files are loaded grouped by file extension in the order given previously, `.wav`, `.mp3`, .`ogg`, then `.flac`, then alphabetically within each file type group. The program will automatically save your beat sound configuration in your config file. 
+Any `.wav`, `.mp3`, .`ogg`, or `.flac` in the specified beats directory (`BEATSDIR`) will be loaded as a click sound. By default, the first loaded alphabetically[^1] will be the primary click sound, and the second loaded the secondary. Files are loaded grouped by file extension in the order given previously, `.wav`, `.mp3`, .`ogg`, then `.flac`, then alphabetically within each file type group. The program will automatically save your beat sound configuration in your config file. 
 
-This program supports using custom raygui styles. To set a custom style, change the value of `STYLEPATH = "..."` in your config file. If that file does not exist, the program will warn you about it and use the default raygui style.
+This program supports using custom raygui styles. To set a custom style, change the value of `STYLEPATH = "..."` in your config file. If that file does not exist[^2], the program will warn you about it and use the default raygui style.
 
-You can also change what common tempi are shown on either side of the triangle. Edit the lines in `metronome.c` above `wrzSpeedSelectionButtons()` that read as follows:
+You can also change what common tempi are shown on either side of the triangle. Edit the lines in `metronome.c` above `wrzSpeedSelectionButtons()` that read as follows[^3]:
 ```c
 int left_side_numbers[9] = { ... };
 int right_side_numbers[9] = { ... };
@@ -64,4 +70,10 @@ with any replacement numbers (integers only) you want, so long as they are betwe
 
 Click sound source: [errorjones via Reddit](https://www.reddit.com/r/audioengineering/comments/kg8gth/free_click_track_sound_archive/?rdt=32981) -- [direct archive link](https://stash.reaper.fm/40824/Metronomes.zip)
 
+[^0]: I will switch to using the .env configuration format sooner or later; when I change I'll be able to get rid of the mismatched functions.
 
+[^1]: "Alphabetically" as determined by your filesystem. On Windows 10 (on my machines), `default-beat.wav` loads before `default-sub-beat.wav`; in my Arch Linux VM, the order is reversed. This is why the configuration option exists in the first place, because figuring out the order of the files is stupid and annoying.
+
+[^2]: Technically, it will assume that whatever is in between the quotation marks is a filepath. The default configuration comes as `""` and if the program is forced to write a default configuration, it may end up as `"(null)"`; either way, these are not existent files unless you're wierd and doing wierd things with files.
+
+[^3]: This will eventually be moved to the config file.
