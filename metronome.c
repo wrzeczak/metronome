@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 #include <raylib.h>
@@ -254,6 +255,30 @@ int main(void) {
 
     //------------------------------------------------------------------------------
 
+    int imported_beat_idx = -1;
+    int imported_sub_beat_idx = -1;
+
+    if(FileExists("./metronome.config")) {
+        FILE * config_file = fopen("./metronome.config", "r");
+        
+        char config_file_line[255];
+        memset(config_file_line, '\0', 255);
+
+        fgets(config_file_line, 255, config_file);
+        sscanf_s(config_file_line, "PRIMARY = %d", &imported_beat_idx);
+        printf("INFO: CONFIG: Loaded config option, primary beat sound set to #%d.\n", imported_beat_idx);
+
+        memset(config_file_line, '\0', 255);
+
+        fgets(config_file_line, 255, config_file);
+        sscanf_s(config_file_line, "SECONDARY = %d", &imported_sub_beat_idx);
+        printf("INFO: CONFIG: Loaded config option, secondary beat sound set to #%d.\n", imported_sub_beat_idx);
+
+        fclose(config_file);
+    } else printf("INFO: CONFIG: No metronome.config found, loading defaults.\n");
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     InitAudioDevice();
     wrzBeatSounds sounds = wrzLoadBeatSounds(BEATSDIR); // load beat sounds from filesystem
     // NOTE: this function should capture errors with missing files by itself, but i have not thoroughly tested this
@@ -262,19 +287,11 @@ int main(void) {
     Sound sub_beat_sound = { 0 };
 
     // which beat and sub-beat are to be played, indexing into sounds.sounds[]
-    int beat_idx;
-    int sub_beat_idx;
+    int beat_idx = (imported_beat_idx != -1 && (imported_beat_idx - 1) < sounds.count) ? imported_beat_idx - 1 : 0; // removing 1 because the UI is 1-indexed 
+    int sub_beat_idx = (imported_sub_beat_idx != -1 && (imported_sub_beat_idx - 1) < sounds.count) ? imported_sub_beat_idx - 1 : 0; // same here
 
-    beat_sound = sounds.sounds[0];
-    beat_idx = 0;
-
-    if(sounds.count > 1) { // if there is more than one sound
-        sub_beat_sound = sounds.sounds[1];
-        sub_beat_idx = 1;
-    } else { // otherwise, duplicate it
-        sub_beat_sound = sounds.sounds[0];
-        sub_beat_idx = 0;
-    }
+    beat_sound = sounds.sounds[beat_idx];
+    sub_beat_sound = sounds.sounds[sub_beat_idx];
 
     //------------------------------------------------------------------------------
 
@@ -351,6 +368,16 @@ int main(void) {
     CloseWindow();
 
     CloseAudioDevice();
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    if(FileExists("./metronome.config")) {
+        // deletes previous config, we will rewrite it
+        FILE * config_file = fopen("./metronome.config", "w+");
+        fprintf_s(config_file, "PRIMARY = %d\nSECONDARY = %d\n", beat_idx + 1, sub_beat_idx + 1); // adding one to from 0-idx to 1-idx
+        printf("INFO: CONFIG: Updated config file, primary = %d and secondary = %d.\n", beat_idx + 1, sub_beat_idx + 1); // same here
+        fclose(config_file);
+    }
 
     return 0;
 }

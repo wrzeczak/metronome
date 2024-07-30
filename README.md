@@ -24,7 +24,7 @@ Click the left and right buttons below the slider to set the primary and seconda
 
  ### Customization
 
-Any `.wav`, `.mp3`, .`ogg`, or `.flac` in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. By default, the first alphabetically will be the primary click sound, and the second the secondary. I don't yet have a mechanism to save which sounds should be primary and secondary, so plan accordingly.
+Any `.wav`, `.mp3`, .`ogg`, or `.flac` in `./resources/beats/` will be loaded as a click sound. Press space to cycle through them. By default, the first loaded alphabetically will be the primary click sound, and the second loaded the secondary. Files are loaded grouped by file extension in the order given previously, `.wav`, `.mp3`, .`ogg`, then `.flac`. The program will automatically save your beat sound configuration in `./metronome.config`. I would not recommend manually editing this file simply because the code I wrote to read and write it is not very robust.
 
 To use a different beats folder, edit the line towards the top of `metronome.c` that reads as follows:
 ```c
