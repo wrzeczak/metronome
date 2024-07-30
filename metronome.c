@@ -121,13 +121,13 @@ int right_side_numbers[9] = { 100, 96, 92, 88, 80, 72, 66, 60, 52 };
 // NOTE: modifies `bpm`
 void wrzSpeedSelectionButtons(float * bpm) {
     // left side, dx = -35, dy = 60
-    for(int i = 0; i < 9; i++) {
+    for(int i = 0; i < (sizeof(left_side_numbers) / sizeof(int)); i++) {
         int render_bpm = left_side_numbers[i];
         if( GuiButton((Rectangle) { 480 - (35 * i), 180 + (60 * i), 100, 50 }, TextFormat((render_bpm > 99) ? "%03d      " : "%02d       ", render_bpm)) ) *bpm = (float) render_bpm;    
     }
 
     // right side, now, dx = 35
-    for(int j = 0; j < 9; j++) {
+    for(int j = 0; j < (sizeof(right_side_numbers) / sizeof(int)); j++) {
         int render_bpm = right_side_numbers[j];
         if( GuiButton((Rectangle) { 620 + (35 * j), 180 + (60 * j), 100, 50 }, TextFormat((render_bpm > 99) ? "      %03d" : "       %02d", render_bpm)) ) *bpm = (float) render_bpm;
     }
